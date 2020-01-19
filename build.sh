@@ -1,1 +1,1 @@
-gcc ./main.c -l ncurses -o apebrain
+g++ ./main.cpp -l ncurses -o apebrain
