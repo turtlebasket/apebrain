@@ -1,9 +1,10 @@
 ApeBrain
 ===
-ApeBrain is a simple task scheduler project in which my stupid ass attempts to (re)learn C/C++, while actually creating something remotely useful.
+ApeBrain is an extremely simple task scheduler project in which my stupid ass attempts to (re)learn C/C++, while attempting to actually something remotely useful in the process.
 
 Features
 ---
-- [ ] simple task tracking
-- [ ] `ncurses` interface with `vim` and arrow key bindings
-- [ ] \[MAYBE\]`apebraind` daemon + due date tracking
+- [x] `ncurses` interface with vim-style and arrow-key bindings
+- [x] Simple task tracking
+- [ ] storage using `std::vector`
+- [ ] \[MAYBE\] `apebraind` daemon + due date tracking

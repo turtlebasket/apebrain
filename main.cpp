@@ -1,18 +1,38 @@
 #include <ncurses.h>
 #include <string>
-#include <cstdlib>
+#include <cstring>
+#include <vector>
+#include <fstream>
 
 using namespace std;
 
 struct item {
 	string content;
+	bool ticked;
+	void tick() {
+		ticked = !ticked;
+	}
+
+	string tick_state() {
+		return ticked ? "[x]" : "[ ]";
+	}
+
+	item(string cont) {
+		content = cont;
+		ticked=false;
+	}
 };
 
-struct item todo[100];
-string item_state(bool);
 
 int main() {
+	// placeholder values (TESTING)
+	vector<item> todo {
+		item("Take out the trash"),
+		item("Do chemistry problems"),
+		item("Eat crayons")
+	};
 
+	// ncurses init
 	initscr(); 						// start curses mode (INITIALIZE SCREEN)
 	raw();							// get raw character input, not lines
 	keypad(stdscr, TRUE);			// get arrow keys, etc
@@ -27,7 +47,7 @@ int main() {
 	// initialize window
 
 	WINDOW *win = newwin(row, col, 0, 0);
-	char title[] = "test title";
+	char title[] = "apebrain";
 
 	while(1) {
 		refresh();
@@ -40,21 +60,16 @@ int main() {
 		// print window contents
 		attrset(A_NORMAL);
 
-		for (int i = 2; i <= 5; i++) {
-			char* item = "item";
-			if (i == (int)selected_index+2) {
+		for (int i = 0; i < todo.size(); i++) {
+			item task = todo.at(i);
+			if (i == (int)selected_index) {
 				attrset(A_STANDOUT);
-				mvprintw(i, 0, "[ ] %s%", item);
+				mvprintw(i+2, 0, "%s %s%", task.tick_state().c_str(), task.content.c_str());
 				attrset(A_NORMAL);
 			}
 			else
-				mvprintw(i, 0, "[ ] %s%", item);
+				mvprintw(i+2, 0, "%s %s%", task.tick_state().c_str(), task.content.c_str());
 
-			/*
-			mvprintw(i, 0, "[ ] %s", "item");
-			if (i == (int)selected_index+2)
-				mvchgat(i, 0, 30, A_STANDOUT, 1, NULL);
-			*/
 		}
 
 		char in = getch();
@@ -71,18 +86,17 @@ int main() {
 				selected_index++;
 		}
 
+		else if (in == ' ') {
+			todo[selected_index].tick();
+		}
+
 		else if (in == 'q') {
 			endwin();
 			return 0;
 		}
+
 	}
 
 	endwin();
 	return 0;
-}
-
-string tick_state(bool ticked) {
-	// get item state
-
-	return ticked ? "[x]" : "[ ]";
 }
