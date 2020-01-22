@@ -64,11 +64,11 @@ int main() {
 			item task = todo.at(i);
 			if (i == (int)selected_index) {
 				attrset(A_STANDOUT);
-				mvprintw(i+2, 0, "%s %s%", task.tick_state().c_str(), task.content.c_str());
+				mvprintw(i+2, 0, "  %s %s%", task.tick_state().c_str(), task.content.c_str());
 				attrset(A_NORMAL);
 			}
 			else
-				mvprintw(i+2, 0, "%s %s%", task.tick_state().c_str(), task.content.c_str());
+				mvprintw(i+2, 0, "  %s %s%", task.tick_state().c_str(), task.content.c_str());
 
 		}
 
@@ -82,7 +82,7 @@ int main() {
 		}
 
 		else if (in == (char)KEY_DOWN || in == 'j') {
-			if (selected_index <= (5))
+			if (selected_index < todo.size()-1)
 				selected_index++;
 		}
 
