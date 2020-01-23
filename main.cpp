@@ -38,15 +38,14 @@ vector<item> load_save(string filename) {
 	string content, tick_state;
 	bool ticked=false;
 
-	while(!infile.eof()){
-		getline(infile, content);
-		getline(infile, tick_state);
+	while(getline(infile, content) && getline(infile, tick_state)){
 		if (tick_state=="t") ticked=true;
 		else if (tick_state=="f") ticked=false;
 		else exit(1);
 		list.push_back(item(content, ticked));
 	}
 
+	infile.close();
 	return list;
 }
 
@@ -137,11 +136,12 @@ int main() {
 		}
 
 		else if (in == 'x') {
+			selected_index = 0;
 			for (int i=0; i<todo.size(); i++) {
 				if (todo[i].ticked)
 					todo.erase(todo.begin()+i);
-					wrefresh(win);
 			}
+			wrefresh(win);
 		}
 
 		else if (in == 'q') {
