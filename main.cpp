@@ -52,7 +52,7 @@ vector<item> load_save(string filename) {
 void write_save(vector<item> list, string filename) {
 
 	// rearrange ticked
-	for (int i = 0; i < list.size(); i++) {
+	for (int i = list.size()-1; i>=0; i--) {
 		if (list[i].ticked) {
 			item temp = list[i];
 			list.push_back(temp);
@@ -109,11 +109,11 @@ int main() {
 			item task = todo.at(i);
 			if (i == (int)selected_index) {
 				attrset(A_STANDOUT);
-				mvprintw(i+2, 0, " %s %s%", task.tick_state().c_str(), task.content.c_str());
+				mvprintw(i+2, 0, "%d. %s %s% ", i+1, task.tick_state().c_str(), task.content.c_str());
 				attrset(A_NORMAL);
 			}
 			else
-				mvprintw(i+2, 0, " %s %s%", task.tick_state().c_str(), task.content.c_str());
+				mvprintw(i+2, 0, "%d. %s %s% ", i+1, task.tick_state().c_str(), task.content.c_str());
 
 		}
 
@@ -131,16 +131,28 @@ int main() {
 				selected_index++;
 		}
 
+		else if ((int)in-'0' >=1 && (int)in-'0' <=9)
+			selected_index = (int)in-'0'-1;
+
 		else if (in == ' ') {
 			todo[selected_index].tick();
 		}
 
 		else if (in == 'x') {
-			selected_index = 0;
-			for (int i=0; i<todo.size(); i++) {
+			for (int i=todo.size()-1; i>=0; i--) {
 				if (todo[i].ticked)
 					todo.erase(todo.begin()+i);
 			}
+			selected_index=0;
+			clear();
+			wrefresh(win);
+		}
+
+		else if (in == 'a') {
+			// get input
+			// add item (top of list)
+			todo.insert(todo.begin(), item("Thingy"));
+			clear();
 			wrefresh(win);
 		}
 
