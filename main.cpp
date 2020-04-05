@@ -1,35 +1,16 @@
 #include <ncurses.h>
+#include <json/json.h>
 #include <cstdlib>
 #include <string>
 #include <cstring>
 #include <vector>
 #include <fstream>
 
+#include "tdutil.h"
+
 using namespace std;
 
-struct item {
-	string content;
-	bool ticked;
-
-	item(string cont) {
-		content=cont;
-		ticked=false;
-	}
-
-	item(string cont, bool tick) {
-		content=cont;
-		ticked=tick;
-	}
-
-	void tick() {
-		ticked = !ticked;
-	}
-
-	string tick_state() {
-		return ticked ? "[x]" : "[ ]";
-	}
-};
-
+// TODO: JSON-based save system
 vector<item> load_save(string filename) {
 	vector<item> list;
 	ifstream infile;
@@ -63,10 +44,10 @@ void write_save(vector<item> list, string filename) {
 	ofstream outfile;
 	outfile.open(filename);
 
-	for (int i=0; i<list.size(); i++) {
+	for (int i=0; i<(int)list.size(); i++) {
 		outfile << (list[i].content+"\n").c_str();
 		outfile << ((string)(list[i].ticked?"t":"f")).c_str();
-		if (i!=list.size()-1)
+		if (i!=(int)list.size()-1)
 			outfile << "\n";
 	}
 
@@ -105,15 +86,15 @@ int main() {
 		// print window contents
 		attrset(A_NORMAL);
 
-		for (int i = 0; i < todo.size(); i++) {
+		for (int i = 0; i < (int)todo.size(); i++) {
 			item task = todo.at(i);
 			if (i == (int)selected_index) {
 				attrset(A_STANDOUT);
-				mvprintw(i+2, 0, "%d. %s %s% ", i+1, task.tick_state().c_str(), task.content.c_str());
+				mvprintw(i+2, 0, "%d.\t%s %s% ", i+1, task.tick_state().c_str(), task.content.c_str());
 				attrset(A_NORMAL);
 			}
 			else
-				mvprintw(i+2, 0, "%d. %s %s% ", i+1, task.tick_state().c_str(), task.content.c_str());
+				mvprintw(i+2, 0, "%d.\t%s %s% ", i+1, task.tick_state().c_str(), task.content.c_str());
 
 		}
 
@@ -127,19 +108,49 @@ int main() {
 		}
 
 		else if (in == (char)KEY_DOWN || in == 'j') {
-			if (selected_index < todo.size()-1)
+			if (selected_index < (int)todo.size()-1)
 				selected_index++;
+		}
+
+		else if (in == 'K') {
+			if (selected_index > 0) {
+				item temp = todo[selected_index-1];
+				todo[selected_index-1] = todo[selected_index];
+				todo[selected_index] = temp;
+				selected_index--;
+                clear();
+			}
+		}
+
+		else if (in == 'J') {
+			if (selected_index < (int)todo.size()-1) {
+				item temp = todo[selected_index+1];
+				todo[selected_index+1] = todo[selected_index];
+				todo[selected_index] = temp;
+				selected_index++;
+                clear();
+			}
 		}
 
 		else if ((int)in-'0' >=1 && (int)in-'0' <=9)
 			selected_index = (int)in-'0'-1;
 
-		else if (in == ' ') {
+		else if (in == ' ' || in == '\n') {
 			todo[selected_index].tick();
 		}
 
-		else if (in == 'x') {
-			for (int i=todo.size()-1; i>=0; i--) {
+        else if (in == 'd') {
+            if (selected_index == (int)(todo.size()-1)) {
+                selected_index--;
+                todo.erase(todo.begin()+selected_index+1);
+            }
+            else
+                todo.erase(todo.begin()+selected_index);
+            clear();
+        }
+
+        else if (in == 'x') {
+			for (int i=(int)todo.size()-1; i>=0; i--) {
 				if (todo[i].ticked)
 					todo.erase(todo.begin()+i);
 			}
@@ -149,9 +160,51 @@ int main() {
 		}
 
 		else if (in == 'a') {
-			// get input
-			// add item (top of list)
-			todo.insert(todo.begin(), item("Thingy"));
+
+			clear();
+			WINDOW* get_add = newwin(row, col, 0, 0);
+			curs_set(1);
+			string add_name = "";
+			bool input_escaped = false;
+            char c;
+            mvprintw(0, 0, "%s", "Add task: ");
+
+			while ((c=getch())!='\n') {
+
+				if ((int)c == 27) { // escape character
+					input_escaped = true;
+					break;
+				}
+
+				else if ((int)c == 7 || c == '\b') {       //backspace character
+                    if (add_name.size() > 0)               // is there something to delete?
+                        add_name.erase(add_name.size()-1);
+                    // otherwise, do nothing
+				}
+
+                // TODO: Ctrl+W keybinding support
+                else if ((int)c == 23) {
+                    if (add_name.size() > 0) {
+                        for (int i = add_name.length(); i >= (int)add_name.rfind(' '); i--)
+                            add_name.erase(i);
+                    }
+                }
+
+				else {
+					add_name += c;
+					// add_name += to_string((int)c);
+				}
+
+                mvprintw(0, 10, "%s", add_name.c_str());
+                clrtoeol();
+
+			}
+
+			delwin(get_add);
+            if (!input_escaped)
+                todo.insert(todo.begin(), item(add_name));
+
+			curs_set(0);
 			clear();
 			wrefresh(win);
 		}

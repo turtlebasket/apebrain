@@ -51,6 +51,20 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# exclude the executable >:/
+# CMake stuff
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# Project files
+.vscode/
 apebrain
 save.txt
